@@ -8,10 +8,10 @@ A high-availability, bare-metal micro-cloud designed to host the internal operat
 
 ```mermaid
 graph TD
-    User[Remote Employees] -->|Tailscale Mesh VPN| Proxy
+    User[Remote Employees] -->|Tailscale VPN| TS[Tailscale Subnet Router]
     
     subgraph "Stateful Storage & Identity Layer (Proxmox VE)"
-        Proxy[Nginx Reverse Proxy]
+        TS --> Proxy[Nginx Reverse Proxy]
         AD[Samba AD DC / DNS]
         DB[(PostgreSQL)]
         NFS[NFS Storage / K8s PVs]
@@ -63,8 +63,8 @@ To ensure business continuity, the stateful layer consists of a Primary and a Fa
 
 ### 3. Zero-Trust Networking & Custom Routing
 
-* **Tailscale VPN:** Access to internal services is completely masked from the public internet. Employees connect securely via a Tailscale mesh VPN network.
-* **DNS Round Robin & Load Balancing:** Instead of relying on internal K8s ingress controllers, external routing is handled natively. The Samba AD DC acts as the central DNS server, utilizing DNS Round Robin to resolve internal domains. Traffic is then routed through the primary Nginx Reverse Proxy (hosted on Proxmox), which acts as the load balancer across the stateless K3s worker nodes.
+* **Tailscale Subnet Routing:** Instead of running VPN clients on every individual virtual machine or Kubernetes node, Tailscale is installed directly on the Proxmox host. Operating as a **Subnet Router**, it securely exposes the internal management and service subnets to authorized remote employees without exposing any ports to the public internet.
+* **DNS Round Robin & Load Balancing:** External routing is handled natively rather than relying on internal K8s ingress controllers. The Samba AD DC acts as the central DNS server, utilizing DNS Round Robin to resolve internal domains. Traffic is then routed through the primary Nginx Reverse Proxy (hosted on Proxmox), which acts as the load balancer across the stateless K3s worker nodes.
 
 ---
 
