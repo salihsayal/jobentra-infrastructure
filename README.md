@@ -30,7 +30,7 @@ graph TD
         AD1 <-->|Multi-Master Sync| AD2
         DB1 -->|Streaming Replication| DB2
         NFS1 -->|Rsync / Keepalived| NFS2
-        Proxy1 <-->|Keepalived VIP| Proxy2
+        Proxy1 <-->|Keepalived VIP & Config Sync| Proxy2
     end
 
     subgraph "Stateless Compute Layer (Ubuntu + K3s)"
@@ -71,7 +71,7 @@ Instead of relying on simple block-level storage replication, the stateful layer
 
 * **Database Replication:** PostgreSQL is configured with a dedicated replicator role, streaming transactions continuously from the primary instance to the hot-standby failover node.
 * **Identity & DNS Multi-Master:** The Samba Active Directory Domain Controller runs on both hosts as domain members, automatically syncing DNS and identity data. Both nodes act as active DNS resolvers.
-* **Storage & Routing Failover:** NFS storage and the Nginx Reverse Proxy instances are kept in sync via `rsync` and utilize `Keepalived` to float virtual IP addresses (VIPs). If the primary host goes offline, the failover host seamlessly assumes the routing and storage endpoints.
+* **Storage & Routing Failover:** NFS storage and Nginx Reverse Proxy configurations (e.g., routing rules and SSL certificates) are kept in sync via `rsync`. Both services utilize `Keepalived` to float virtual IP addresses (VIPs). If the primary host goes offline, the failover host seamlessly assumes the routing and storage endpoints with identical configurations.
 
 ### 3. Zero-Trust Networking & Custom Routing
 
