@@ -64,7 +64,7 @@ graph TD
 
 Running databases inside Kubernetes can introduce unnecessary complexity regarding data persistence and quorum loss. To prevent this, **no databases run within the cluster**:
 
-* **Stateless (K3s):** The 3-node Kubernetes cluster is entirely ephemeral. It runs the CRM microservices and developer tooling (Gitea, OpenProject, CI/CD). To enforce this, default Helm chart databases were disabled, and all services are explicitly configured to query the external PostgreSQL cluster. If a K3s node dies, it can be wiped and reprovisioned without any data loss.
+* **Stateless (K3s):** The 3-node Kubernetes cluster is entirely ephemeral. It runs the CRM microservices (Java Spring Boot, Python FastAPI, and scaled Next.js frontends) and developer tooling (Gitea, OpenProject, CI/CD). To enforce this, default Helm chart databases were disabled, and all services are explicitly configured to query the external PostgreSQL cluster. If a K3s node dies, it can be wiped and reprovisioned without any data loss.
 * **Stateful (Proxmox):** All persistent data (PostgreSQL, Samba AD DC, NFS shares for K8s Persistent Volumes) runs on dedicated Proxmox VE hypervisors completely outside the Kubernetes cluster.
 
 ### 2. Application-Level High Availability (HA)
@@ -90,9 +90,7 @@ The entire infrastructure runs on highly efficient, low-power micro nodes, maxim
 | --- | --- | --- | --- | --- |
 | **Stateful (Primary)** | Fujitsu Esprimo Mini PC | Intel Core i3, 16GB RAM, 250GB SSD | Proxmox VE | Active AD DC, Primary PostgreSQL, NFS, Nginx, Tailscale |
 | **Stateful (Failover)** | Lenovo ThinkCentre Tiny | Intel Core i3, 16GB RAM, 180GB SSD | Proxmox VE | Secondary AD DC, PostgreSQL Replica, Keepalived Failover |
-| **Stateless (Worker 1)** | Fujitsu Esprimo Mini PC | Intel Core i3, 8GB RAM, 128GB SSD | Ubuntu Server + K3s | K8s Worker, CRM Services, OpenProject |
-| **Stateless (Worker 2)** | Fujitsu Esprimo Mini PC | Intel Core i3, 8GB RAM, 128GB SSD | Ubuntu Server + K3s | K8s Worker, Gitea, ArgoCD |
-| **Stateless (Worker 3)** | Fujitsu Esprimo Mini PC | Intel Core i3, 8GB RAM, 128GB SSD | Ubuntu Server + K3s | K8s Worker, CI/CD Runners |
+| **Stateless (Worker Pool)** | 3x Fujitsu Esprimo Mini PC | Intel Core i3, 8GB RAM, 128GB SSD (each) | Ubuntu Server + K3s | Dynamic K8s Workers. Workloads (CRM replicas, Gitea, ArgoCD, OpenProject) are scheduled dynamically across all three nodes by the Kube-Scheduler. |
 
 ---
 
