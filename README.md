@@ -8,29 +8,38 @@ A high-availability, bare-metal micro-cloud designed to host the internal operat
 
 ```mermaid
 graph TD
-    User[Remote Employees] -->|Tailscale Mesh VPN| Proxy[Nginx Reverse Proxy]
+    User[Remote Employees] -->|Tailscale Mesh VPN| Proxy
     
-    subgraph "Stateless Compute Layer (Ubuntu + K3s)"
-        Proxy -->|Load Balancing| K8s[3-Node K3s Cluster]
-        K8s --> CRM[Jobentra CRM Services]
-        K8s --> DevOps[Gitea, ArgoCD, Runners]
-        K8s --> Tools[OpenProject]
-    end
-
     subgraph "Stateful Storage & Identity Layer (Proxmox VE)"
-        Main[(Primary Host)]
-        Fallback[(Failover Host)]
+        Proxy[Nginx Reverse Proxy]
+        AD[Samba AD DC / DNS]
+        DB[(PostgreSQL)]
+        NFS[NFS Storage / K8s PVs]
         
-        Main <-->|Active Replication| Fallback
+        Main[(Primary Host)] <-->|Active Replication| Fallback[(Failover Host)]
         
-        Main --> AD[Samba AD DC / DNS]
-        Main --> DB[(PostgreSQL)]
-        Main --> NFS[NFS Storage / K8s PVs]
+        Main --> Proxy
+        Main --> AD
+        Main --> DB
+        Main --> NFS
+        
+        Proxy -. DNS Resolution .-> AD
     end
 
+    subgraph "Stateless Compute Layer (Ubuntu + K3s)"
+        K8s[3-Node K3s Cluster]
+        CRM[Jobentra CRM Services]
+        DevOps[Gitea, ArgoCD, Runners]
+        Tools[OpenProject]
+        
+        K8s --> CRM
+        K8s --> DevOps
+        K8s --> Tools
+    end
+
+    Proxy -->|Load Balancing| K8s
     K8s -. Persistent Volumes .-> NFS
     CRM -. Queries .-> DB
-    Proxy -. DNS Resolution .-> AD
 
 ```
 
