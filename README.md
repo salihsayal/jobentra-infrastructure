@@ -51,6 +51,8 @@ graph TD
     K8s -. Failover Volumes .-> NFS2
     
     CRM -. Queries .-> DB1
+    DevOps -. Queries .-> DB1
+    Tools -. Queries .-> DB1
 
 ```
 
@@ -60,10 +62,10 @@ graph TD
 
 ### 1. Strict Stateful vs. Stateless Decoupling
 
-Running databases inside Kubernetes can introduce unnecessary complexity regarding data persistence and quorum loss. To prevent this:
+Running databases inside Kubernetes can introduce unnecessary complexity regarding data persistence and quorum loss. To prevent this, **no databases run within the cluster**:
 
-* **Stateless (K3s):** The 3-node Kubernetes cluster is entirely ephemeral. It runs the CRM microservices and developer tooling (Gitea, OpenProject, CI/CD). If a K3s node dies, it can be wiped and reprovisioned without any data loss.
-* **Stateful (Proxmox):** All persistent data (PostgreSQL, Samba AD DC, NFS shares for K8s Persistent Volumes) runs on dedicated Proxmox VE hypervisors outside the Kubernetes cluster.
+* **Stateless (K3s):** The 3-node Kubernetes cluster is entirely ephemeral. It runs the CRM microservices and developer tooling (Gitea, OpenProject, CI/CD). To enforce this, default Helm chart databases were disabled, and all services are explicitly configured to query the external PostgreSQL cluster. If a K3s node dies, it can be wiped and reprovisioned without any data loss.
+* **Stateful (Proxmox):** All persistent data (PostgreSQL, Samba AD DC, NFS shares for K8s Persistent Volumes) runs on dedicated Proxmox VE hypervisors completely outside the Kubernetes cluster.
 
 ### 2. Application-Level High Availability (HA)
 
