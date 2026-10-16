@@ -1,4 +1,4 @@
-# Jobentra – Hybrid Infrastructure Architecture
+# Jobentra – On-Premise Bare-Metal Infrastructure Architecture
 
 A high-availability, bare-metal micro-cloud designed to host the internal operations, CRM, and developer tooling for Jobentra (a recruitment and staffing agency).
 
